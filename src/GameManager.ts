@@ -16,17 +16,22 @@ export class GameManager {
     }
 
     public addUser(webSocket:WebSocket,name:string){
+        if (this.Users.some(user => user.webSocket === webSocket)) {
+            return;
+        }
         this.Users.push(new User(name,Date.now(),webSocket))
         this.gameSettingHandler(webSocket)
     }
     public removeUser(webSocket:WebSocket){
-        this.Users = this.Users.filter((user)=> user.webSocket!= webSocket)
+        this.Users = this.Users.filter((user)=> user.webSocket!== webSocket)
+        console.log("removed User")
     }
     public gameSettingHandler(webSocket:WebSocket){
         webSocket.on('message',(data)=>{
             const msg = JSON.parse(data.toString())
             if(msg.type=== INIT_MESSAGE){
                 if(this.pendingUser){
+                    if(this.pendingUser.webSocket === webSocket) return
                     this.gamesCount++
                     const newGame = new Game(this.pendingUser,{webSocket,playerType:whiteOrBlack.Black},this.gamesCount)
                     this.games.push(newGame)
